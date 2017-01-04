@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file.
 
-package bodylimitmidware
+package bodylimit
 
 import (
 	"bytes"
@@ -14,11 +14,11 @@ import (
 
 func TestBodyLimit(t *testing.T) {
 	body := []byte("hello")
-	midware := New(int64(len(body) - 1))
+	limiter := New(int64(len(body) - 1))
 
 	var pass bool
 
-	handler := midware.Wrap(gem.HandlerFunc(func(ctx *gem.Context) {
+	handler := limiter.Wrap(gem.HandlerFunc(func(ctx *gem.Context) {
 		pass = true
 	}))
 

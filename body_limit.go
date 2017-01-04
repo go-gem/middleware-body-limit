@@ -3,7 +3,7 @@
 // that can be found in the LICENSE file.
 
 /*
-Package bodylimitmidware is a HTTP middleware that limit the request body size.
+Package bodylimit is a HTTP middleware that limit the request body size.
 
 Example
 
@@ -18,15 +18,15 @@ Example
 
 	func main() {
 		// maximum size: 2M.
-		midware := bodylimitmidware.New(int64(2 * 1024))
+		limiter := bodylimit.New(int64(2 * 1024))
 		router := gem.NewRouter()
 		router.POST("/upload", func(ctx *gem.Context) {
 			// upload files.
-		}, &gem.HandlerOption{Middlewares: []gem.Middleware{midware}})
+		}, &gem.HandlerOption{Middlewares: []gem.Middleware{limiter}})
 		log.Println(gem.ListenAndServe(":8080", router.Handler()))
 	}
 */
-package bodylimitmidware
+package bodylimit
 
 import (
 	"net/http"
@@ -34,23 +34,23 @@ import (
 	"github.com/go-gem/gem"
 )
 
-// New returns BodyLimit instance by the
+// New returns Limiter instance by the
 // given maximum allowed size.
-func New(limit int64) *BodyLimit {
-	return &BodyLimit{
-		limit: limit,
+func New(max int64) *Limiter {
+	return &Limiter{
+		max: max,
 	}
 }
 
-// BodyLimit request body limit middleware.
-type BodyLimit struct {
+// Limiter request body limit middleware.
+type Limiter struct {
 	// Maximum allowed size for a request body,
 	// it's unit is byte.
-	limit int64
+	max int64
 }
 
 // Wrap implements Middleware's interface.
-func (m *BodyLimit) Wrap(next gem.Handler) gem.Handler {
+func (l *Limiter) Wrap(next gem.Handler) gem.Handler {
 	return gem.HandlerFunc(func(ctx *gem.Context) {
 		// response Bad Request if the content length is unknown.
 		if ctx.Request.ContentLength == -1 || (ctx.Request.ContentLength == 0 && ctx.Request.Body != nil) {
@@ -58,9 +58,9 @@ func (m *BodyLimit) Wrap(next gem.Handler) gem.Handler {
 			return
 		}
 
-		// response Request Entity Too Large if content length
+		// response Request Entity Too Large if content length is
 		// large than maximum size.
-		if ctx.Request.ContentLength > m.limit {
+		if ctx.Request.ContentLength > l.max {
 			ctx.Response.WriteHeader(http.StatusRequestEntityTooLarge)
 			return
 		}

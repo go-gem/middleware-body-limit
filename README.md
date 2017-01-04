@@ -27,11 +27,11 @@ import (
 )
 
 func main() {
-	midware := bodylimitmidware.New(int64(1024))
+	limiter := bodylimit.New(int64(1024))
 	router := gem.NewRouter()
 	router.POST("/upload", func(ctx *gem.Context) {
 		// upload files.
-	}, &gem.HandlerOption{Middlewares: []gem.Middleware{midware}})
+	}, &gem.HandlerOption{Middlewares: []gem.Middleware{limiter}})
 	log.Println(gem.ListenAndServe(":8080", router.Handler()))
 }
 ```
